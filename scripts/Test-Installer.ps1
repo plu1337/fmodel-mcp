@@ -7,7 +7,7 @@ $installer = Join-Path $package 'Install-Mcp.ps1'
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 try {
     # Exercise the stock Windows PowerShell host, which end users can run without installing PowerShell 7.
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $installer -PackagePath $package -InstallRoot $testRoot -SkipRegistration
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $installer -InstallRoot $testRoot -SkipRegistration
     if ($LASTEXITCODE -ne 0) { throw 'Fresh installation failed.' }
     $configPath = Join-Path $testRoot 'config.json'
     $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json

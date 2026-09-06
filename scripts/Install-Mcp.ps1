@@ -1,14 +1,16 @@
 #Requires -Version 5.1
 [CmdletBinding()]
 param(
-    [string]$PackagePath = $PSScriptRoot,
-    [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA 'FModelMcp'),
+    [string]$PackagePath,
+    [string]$InstallRoot,
     [string[]]$InputRoots,
     [string]$OutputRoot,
     [string]$CodexPath,
     [switch]$SkipRegistration
 )
 $ErrorActionPreference = 'Stop'
+if (!$PackagePath) { $PackagePath = $PSScriptRoot }
+if (!$InstallRoot) { $InstallRoot = Join-Path $env:LOCALAPPDATA 'FModelMcp' }
 if ([Environment]::OSVersion.Platform -ne 'Win32NT' -or ![Environment]::Is64BitOperatingSystem) {
     throw 'This release requires Windows x64.'
 }
