@@ -48,7 +48,7 @@ public sealed partial class FModelService : IAsyncDisposable
 
     public object Capabilities() => new
     {
-        name = "FModel MCP", version = "1.1.0", parser = typeof(DefaultFileProvider).Assembly.GetName().Version?.ToString(),
+        name = "FModel MCP", version = "1.1.1", parser = typeof(DefaultFileProvider).Assembly.GetName().Version?.ToString(),
         transport = "stdio", operatingSystem = Environment.OSVersion.ToString(),
         inputRoots = _options.InputRoots, outputRoot = _options.OutputRoot,
         limits = new { _options.MaxSessions, _options.MaxJobs, _options.MaxBatchAssets, _options.MaxReadBytes, _options.MaxResponseChars, maxPageSize = 200 },

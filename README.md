@@ -40,8 +40,8 @@ describe the boundaries. The server does not edit or repack game archives.
 
 **Requires Windows x64.** Release ZIPs include .NET 10; you do not need to install the SDK or runtime.
 
-1. Download `fmodel-mcp-1.1.0-win-x64.zip` and its `.sha256` file from [Releases](https://github.com/plu1337/fmodel-mcp/releases/latest).
-2. Check the ZIP with `Get-FileHash .\fmodel-mcp-1.1.0-win-x64.zip -Algorithm SHA256` against the published checksum, then extract it to a folder.
+1. Download `fmodel-mcp-1.1.1-win-x64.zip` and its `.sha256` file from [Releases](https://github.com/plu1337/fmodel-mcp/releases/latest).
+2. Check the ZIP with `Get-FileHash .\fmodel-mcp-1.1.1-win-x64.zip -Algorithm SHA256` against the published checksum, then extract it to a folder.
 3. Open PowerShell in that extracted folder and run:
 
 ```powershell

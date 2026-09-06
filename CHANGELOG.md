@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+- Fixed inline texture previews sending raw PNG bytes where MCP requires base64 text. Images now display correctly in MCP clients.
+- Added a regression test that opens a real Unreal texture through the official stdio MCP client and validates the received PNG encoding and dimensions.
+- Full-resolution texture file exports and saved FModel profile integration remain available.
+
 ## 1.1.0
 
 - Added saved-game discovery and one-command opening from FModel's local settings (34 tools total).

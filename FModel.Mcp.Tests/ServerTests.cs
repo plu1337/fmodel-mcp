@@ -108,7 +108,7 @@ public sealed class ServerTests : IAsyncLifetime
         var preview = await _tools.PreviewTexture(id, texture, Ct, objectName: "T_BC1", maxSize: 32);
         Assert.False(preview.IsError);
         var png = Assert.Single(preview.Content.OfType<ImageContentBlock>());
-        using var bitmap = SKBitmap.Decode(png.Data.ToArray());
+        using var bitmap = SKBitmap.Decode(png.DecodedData.ToArray());
         Assert.Equal(32, bitmap.Width);
         Assert.Equal(32, bitmap.Height);
         foreach (var request in new ExportRequest[]
@@ -257,6 +257,40 @@ public sealed class ServerTests : IAsyncLifetime
         var browse = Data(await client.CallToolAsync("fmodel_browse", new Dictionary<string, object?> { ["sessionId"] = (string)open["sessionId"]! }, cancellationToken: timeout.Token));
         Assert.NotEmpty((JArray)browse["items"]!);
         Assert.NotEmpty((await client.ReadResourceAsync("fmodel://sessions/" + (string)open["sessionId"]!, cancellationToken: timeout.Token)).Contents);
+    }
+
+    [Fact]
+    public async Task OfficialMcpClientReceivesBase64PngPreview()
+    {
+        var directory = CopyIoStore("Tagged");
+        var config = Path.Combine(_temp, "preview-config.json");
+        await File.WriteAllTextAsync(config, JsonConvert.SerializeObject(new ServerOptions { InputRoots = [_temp], OutputRoot = Path.Combine(_temp, "preview-output") }));
+        var configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
+        var dll = Path.Combine(_repo, "FModel.Mcp", "bin", configuration, "net10.0", "FModel.Mcp.dll");
+        var transport = new StdioClientTransport(new() { Command = "dotnet", Arguments = [dll, "--config", config], Name = "FModel preview test" });
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await using var client = await McpClient.CreateAsync(transport, cancellationToken: timeout.Token);
+        var open = Data(await client.CallToolAsync("fmodel_open_game", new Dictionary<string, object?>
+        {
+            ["options"] = new { directory, game = "GAME_UE5_8" }
+        }, cancellationToken: timeout.Token));
+        var preview = await client.CallToolAsync("fmodel_preview_texture", new Dictionary<string, object?>
+        {
+            ["sessionId"] = (string)open["sessionId"]!,
+            ["path"] = "CUE4ParseFixtures/Content/Fixtures/Textures/T_BC1.uasset",
+            ["objectName"] = "T_BC1", ["maxSize"] = 32
+        }, cancellationToken: timeout.Token);
+        Assert.False(preview.IsError);
+        var png = Assert.Single(preview.Content.OfType<ImageContentBlock>());
+        Assert.Equal("image/png", png.MimeType);
+        // Validate what an MCP client receives over stdio, including the base64 wire encoding.
+        var bytes = Convert.FromBase64String(Encoding.UTF8.GetString(png.Data.Span));
+        Assert.Equal(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, bytes[..8]);
+        using var bitmap = SKBitmap.Decode(bytes);
+        Assert.NotNull(bitmap);
+        Assert.Equal(32, bitmap.Width);
+        Assert.Equal(32, bitmap.Height);
+        Data(await client.CallToolAsync("fmodel_close_game", new Dictionary<string, object?> { ["sessionId"] = (string)open["sessionId"]! }, cancellationToken: timeout.Token));
     }
 
     private async Task<JObject> FinishJob(string id)

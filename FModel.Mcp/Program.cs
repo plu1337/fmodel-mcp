@@ -19,7 +19,7 @@ try
     builder.Services.AddSingleton<FModelService>();
     builder.Services.AddMcpServer(o =>
     {
-        o.ServerInfo = new() { Name = "fmodel", Version = "1.1.0" };
+        o.ServerInfo = new() { Name = "fmodel", Version = "1.1.1" };
         o.ServerInstructions = WorkflowContent.Guide;
     }).WithStdioServerTransport()
       .WithTools<FModelTools>().WithResources<FModelResources>().WithPrompts<FModelPrompts>();

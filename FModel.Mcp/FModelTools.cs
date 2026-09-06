@@ -16,7 +16,7 @@ public sealed class FModelTools(FModelService service, ServerOptions options)
             var result = await action();
             if (result is TexturePreview preview)
                 return new() { IsError = false, Content = [new TextContentBlock { Text = $"{preview.Width}x{preview.Height} PNG preview; original pixel format {preview.Format}." },
-                    new ImageContentBlock { Data = preview.Bytes, MimeType = "image/png" }] };
+                    ImageContentBlock.FromBytes(preview.Bytes, "image/png")] };
             var json = ProtocolJson.Serialize(result);
             if (json.Length > options.MaxResponseChars)
                 return Error("response_too_large", "Result exceeds maxResponseChars. Reduce limit, narrow the search, select a deeper JSON pointer, or export properties and read the output in chunks.");
