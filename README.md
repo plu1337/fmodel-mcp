@@ -15,7 +15,7 @@
 
 FModel MCP is a local Model Context Protocol server for Unreal Engine archives and assets. It uses
 the same [CUE4Parse](https://github.com/FabianFG/CUE4Parse) parsing and conversion libraries as
-[FModel](https://github.com/4sval/FModel), exposing **32 tools**, **four resources/resource templates**,
+[FModel](https://github.com/4sval/FModel), exposing **34 tools**, **four resources/resource templates**,
 and **four workflow prompts** to MCP clients. No running FModel window, GPU, or Unreal Editor is required.
 
 This is an independent community project, unaffiliated with the FModel or CUE4Parse maintainers.
@@ -25,6 +25,7 @@ This is an independent community project, unaffiliated with the FModel or CUE4Pa
 | Task | Available capabilities |
 | --- | --- |
 | Open archives | PAK, IoStore, loose assets, engine/game profiles, local mappings, in-memory AES keys |
+| Reuse FModel setup | Discover saved games and open the last saved selection with local keys, profile overrides and mappings |
 | Find assets | Directory browsing, paginated path search, asset registry queries, archive statistics |
 | Understand packages | Exports/imports/names, JSON properties and pointers, references, Blueprint pseudocode |
 | Examine content | Inline texture previews, localization, registry and binary configuration inspection |
@@ -39,8 +40,8 @@ describe the boundaries. The server does not edit or repack game archives.
 
 **Requires Windows x64.** Release ZIPs include .NET 10; you do not need to install the SDK or runtime.
 
-1. Download `fmodel-mcp-1.0.0-win-x64.zip` and its `.sha256` file from [Releases](https://github.com/plu1337/fmodel-mcp/releases/latest).
-2. Check the ZIP with `Get-FileHash .\fmodel-mcp-1.0.0-win-x64.zip -Algorithm SHA256` against the published checksum, then extract it to a folder.
+1. Download `fmodel-mcp-1.1.0-win-x64.zip` and its `.sha256` file from [Releases](https://github.com/plu1337/fmodel-mcp/releases/latest).
+2. Check the ZIP with `Get-FileHash .\fmodel-mcp-1.1.0-win-x64.zip -Algorithm SHA256` against the published checksum, then extract it to a folder.
 3. Open PowerShell in that extracted folder and run:
 
 ```powershell
@@ -49,7 +50,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Mcp.ps1
 
 The installer copies the complete release to `%LOCALAPPDATA%\FModelMcp`, tests its MCP connection,
 and registers `fmodel` using the Codex CLI (including the CLI bundled with the desktop app).
-It creates an `Inputs` folder for archives and mappings and an `Exports` folder for results.
+On a fresh install it detects FModel's saved selection, allows that game folder and its local mapping
+cache, and connects an existing cached Oodle library when available. Saved AES keys are read directly
+from FModel's settings when you open a saved game; they are never copied into the MCP configuration.
+An `Inputs` folder is also available for additional archives; exports go to a separate `Exports` folder.
 To allow an existing game folder instead, run the installer from PowerShell with:
 
 ```powershell
@@ -60,6 +64,14 @@ To allow an existing game folder instead, run the installer from PowerShell with
 5. Ask your assistant:
 
 > Use FModel to show its capabilities and the allowed input folders. Help me select the right engine profile, open my archives, and find texture assets.
+
+If you already use FModel, simply ask:
+
+> Open my saved FModel game and show me what's available.
+
+The assistant can call `fmodel_list_saved_games`, then `fmodel_open_saved_game` with no arguments to
+open the last saved selection. This reads saved settings; it does not inspect unsaved desktop state.
+When multiple cached mappings match, the assistant must select the correct game build explicitly.
 
 The [desktop app, CLI, and IDE extension share local MCP configuration](https://learn.chatgpt.com/docs/extend/mcp).
 ChatGPT web does not read this local configuration; this release is a local stdio server.
@@ -73,6 +85,11 @@ Input directories must exist. Mapping files must be inside an allowed input root
 Run the installer from a newer extracted release to update. Existing settings are preserved unless
 you pass replacement folder parameters, in which case the previous configuration is backed up.
 Versioned installation directories keep a running server from interrupting file copies.
+
+To connect an existing MCP installation to FModel, or refresh allowed folders after changing games, run
+`./Install-Mcp.ps1 -ImportFModel` from an extracted release. Use `-FModelSettingsPath` for an alternate
+settings file. Changes to saved keys/profile overrides are read on each saved-game open; changed access
+roots or codec paths require a server restart. Existing sessions keep their original profile.
 
 To remove the registration, run `codex mcp remove fmodel`, or remove it in the app's MCP settings.
 Then remove unwanted installation folders yourself; keep any inputs or exports you need.

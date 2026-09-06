@@ -242,7 +242,7 @@ public sealed class ServerTests : IAsyncLifetime
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         await using var client = await McpClient.CreateAsync(transport, cancellationToken: timeout.Token);
         var tools = await client.ListToolsAsync(cancellationToken: timeout.Token);
-        Assert.Equal(32, tools.Count);
+        Assert.Equal(34, tools.Count);
         Assert.Equal(tools.Count, tools.Select(t => t.Name).Distinct().Count());
         Assert.All(tools, tool => Assert.False(string.IsNullOrWhiteSpace(tool.Description)));
         var capabilities = Data(await client.CallToolAsync("fmodel_capabilities", cancellationToken: timeout.Token));

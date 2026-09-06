@@ -8,7 +8,9 @@ public static class WorkflowContent
 {
     public const string Guide = """
         FModel explores Unreal Engine game archives (PAK/IoStore) and loose packages using CUE4Parse.
-        Start with fmodel_capabilities and fmodel_list_options. Open a user-provided local directory with
+        Start with fmodel_capabilities. When savedGamesConfigured is true, use fmodel_list_saved_games
+        then fmodel_open_saved_game to reuse the user's saved FModel profile and local keys/mappings.
+        Reuse existing session IDs from list_sessions. Otherwise discover fmodel_list_options and open a local directory with
         the correct GAME_* profile; never guess AES keys or mappings. Keep the returned sessionId.
         Check session_info/list_archives for missing keys before assuming there are no assets.
         Browse/search returns virtual archive paths. Reuse them exactly; use absolute OS paths only for

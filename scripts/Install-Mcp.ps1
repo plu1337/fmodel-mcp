@@ -6,6 +6,8 @@ param(
     [string[]]$InputRoots,
     [string]$OutputRoot,
     [string]$CodexPath,
+    [switch]$ImportFModel,
+    [string]$FModelSettingsPath,
     [switch]$SkipRegistration
 )
 $ErrorActionPreference = 'Stop'
@@ -67,6 +69,39 @@ if ($PSBoundParameters.ContainsKey('OutputRoot')) {
     if (!$OutputRoot -or ![IO.Path]::IsPathRooted($OutputRoot)) { throw 'OutputRoot must be an absolute directory path.' }
     $config.outputRoot = [IO.Path]::GetFullPath($OutputRoot)
 }
+$importedFModel = $false
+if (!$FModelSettingsPath) { $FModelSettingsPath = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'FModel/AppSettings.json' }
+if ($ImportFModel -or $PSBoundParameters.ContainsKey('FModelSettingsPath') -or
+    (!$existingConfig -and !$PSBoundParameters.ContainsKey('InputRoots') -and (Test-Path -LiteralPath $FModelSettingsPath))) {
+    $FModelSettingsPath = [IO.Path]::GetFullPath($FModelSettingsPath)
+    if (!(Test-Path -LiteralPath $FModelSettingsPath)) { throw 'FModel settings were not found. Open a game in FModel and save its settings first.' }
+    $desktopSettings = Get-Content -LiteralPath $FModelSettingsPath -Raw | ConvertFrom-Json
+    $gameDirectory = [string]$desktopSettings.GameDirectory
+    if ($gameDirectory -and (Test-Path -LiteralPath $gameDirectory -PathType Container)) {
+        $roots = @($config.inputRoots) + @([IO.Path]::GetFullPath($gameDirectory))
+        $profile = $desktopSettings.PerDirectory.PSObject.Properties | Where-Object Name -eq $gameDirectory | Select-Object -ExpandProperty Value
+        if (!$profile) { throw 'FModel has no saved profile for its selected directory. Save its settings first.' }
+        $mappingEndpoint = @($profile.Endpoints) | Select-Object -Skip 1 -First 1
+        if ($mappingEndpoint.Overwrite -and $mappingEndpoint.FilePath -and (Test-Path -LiteralPath $mappingEndpoint.FilePath -PathType Leaf)) {
+            $roots += [IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($mappingEndpoint.FilePath))
+        }
+        if ($desktopSettings.OutputDirectory) {
+            $dataRoot = Join-Path $desktopSettings.OutputDirectory '.data'
+            $mappingsRoot = Join-Path $dataRoot 'mappings'
+            if (Test-Path -LiteralPath $mappingsRoot -PathType Container) { $roots += [IO.Path]::GetFullPath($mappingsRoot) }
+            $oodlePath = Join-Path $dataRoot 'oodle-data-shared.dll'
+            if (!$config.oodleLibrary -and (Test-Path -LiteralPath $oodlePath -PathType Leaf)) { $config.oodleLibrary = [IO.Path]::GetFullPath($oodlePath) }
+        }
+        $config.inputRoots = @($roots | Select-Object -Unique)
+        $config | Add-Member -NotePropertyName fmodelSettingsPath -NotePropertyValue $FModelSettingsPath -Force
+        $importedFModel = $true
+        Write-Host "Connected saved FModel profile: $($profile.GameName)"
+        Write-Host "Allowed game directory: $gameDirectory"
+        Write-Host 'Saved keys are read directly by the server when opening a saved game; they are not copied into MCP configuration.'
+    } elseif ($ImportFModel -or $PSBoundParameters.ContainsKey('FModelSettingsPath')) {
+        throw 'The selected FModel game directory does not exist.'
+    }
+}
 if (!(Test-Path -LiteralPath $InstallRoot)) { New-Item -ItemType Directory -Path $InstallRoot | Out-Null }
 if (!$existingConfig -and !$PSBoundParameters.ContainsKey('InputRoots')) {
     New-Item -ItemType Directory -Path $config.inputRoots[0] -Force | Out-Null
@@ -81,10 +116,10 @@ Get-ChildItem -LiteralPath $PackagePath -Force | Copy-Item -Destination $destina
 $executable = Join-Path $destination 'FModel.Mcp.exe'
 # Validate the copied package before changing the user's client registration.
 & (Join-Path $destination 'Smoke-Mcp.ps1') -ServerPath $executable
-if ($existingConfig -and ($PSBoundParameters.ContainsKey('InputRoots') -or $PSBoundParameters.ContainsKey('OutputRoot'))) {
+if ($existingConfig -and ($importedFModel -or $PSBoundParameters.ContainsKey('InputRoots') -or $PSBoundParameters.ContainsKey('OutputRoot'))) {
     Copy-Item -LiteralPath $configPath -Destination ($configPath + '.' + $installId + '.bak')
 }
-if (!$existingConfig -or $PSBoundParameters.ContainsKey('InputRoots') -or $PSBoundParameters.ContainsKey('OutputRoot')) {
+if (!$existingConfig -or $importedFModel -or $PSBoundParameters.ContainsKey('InputRoots') -or $PSBoundParameters.ContainsKey('OutputRoot')) {
     [IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 20), [Text.UTF8Encoding]::new($false))
 }
 & (Join-Path $destination 'Smoke-Mcp.ps1') -ServerPath $executable -ConfigPath $configPath

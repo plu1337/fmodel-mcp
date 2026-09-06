@@ -43,6 +43,12 @@ public sealed class FModelTools(FModelService service, ServerOptions options)
     [McpServerTool(Name = "fmodel_capabilities", ReadOnly = true, OpenWorld = false), Description("Start here. Describe FModel MCP workflows, configured filesystem access, limits, codec availability and unsupported desktop/live features.")]
     public Task<CallToolResult> Capabilities() => Run(service.Capabilities);
 
+    [McpServerTool(Name = "fmodel_list_saved_games", ReadOnly = true, OpenWorld = false), Description("Discover games from the configured local FModel settings file. Returns last saved selection, allowed directories, exact engine profiles, local mapping candidates and saved key counts. Never returns key values. Changes in the open desktop window must first be saved by FModel.")]
+    public Task<CallToolResult> ListSavedGames() => Run(service.ListSavedGames);
+
+    [McpServerTool(Name = "fmodel_open_saved_game", Destructive = false, OpenWorld = false), Description("Open a saved FModel game using its engine/texture profile, version overrides and locally saved AES keys, without putting keys in tool arguments. Empty selector uses FModel's last saved selection; otherwise pass a name or directory from list_saved_games. Reuses an explicit local mapping override or a single matching cached mapping. If several candidates exist, pass the correct mappingsPath. No network downloads. Filesystem allowlists still apply. Reuse existing session IDs from list_sessions instead of reopening repeatedly.")]
+    public Task<CallToolResult> OpenSavedGame(CancellationToken cancellationToken, string selector = "", string? mappingsPath = null, bool readScriptData = true) => Run(() => service.OpenSavedGame(selector, mappingsPath, readScriptData, cancellationToken));
+
     [McpServerTool(Name = "fmodel_list_options", ReadOnly = true, OpenWorld = false), Description("Discover exact game profiles and exporter enum values. Categories: game, texturePlatform, meshFormat, meshQuality, naniteMeshFormat, textureFormat, materialDepth, socketFormat, compressionFormat. Case-insensitive filter and pagination.")]
     public Task<CallToolResult> ListOptions(string category = "game", string filter = "", int offset = 0, int limit = 100) => Run(() => service.EnumValues(category, filter, offset, limit));
 

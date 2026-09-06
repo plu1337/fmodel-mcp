@@ -1,7 +1,7 @@
 # FModel MCP server
 
 FModel is an Unreal Engine archive explorer. This server gives AI assistants direct access to its
-CUE4Parse parsing and conversion pipeline through **32 MCP tools**, four resources/resource templates,
+CUE4Parse parsing and conversion pipeline through **34 MCP tools**, four resources/resource templates,
 and four guided workflow prompts. It runs independently of the WPF application using local stdio.
 
 ## Build and connect
@@ -29,6 +29,7 @@ Copy `examples/fmodel-mcp.config.json` to `fmodel-mcp.local.json` and edit the a
   "inputRoots": ["D:/Games/MyGame", "D:/FModel/Mappings"],
   "outputRoot": "./Exports/Mcp",
   "oodleLibrary": null,
+  "fmodelSettingsPath": null,
   "maxSessions": 4,
   "maxJobs": 32,
   "maxBatchAssets": 500,
@@ -73,6 +74,13 @@ guarantee every asset or codec is supported.
 
 ## AI command plan
 
+When capabilities reports `savedGamesConfigured=true`, first use `fmodel_list_saved_games` and
+`fmodel_open_saved_game`. An empty selector opens FModel's last saved selection with saved local keys,
+profile overrides and a local mapping override or a single matching cached mapping. Keys are not
+returned or copied to MCP config. Multiple mapping candidates require an explicit `mappingsPath`.
+The configured input allowlist still applies. Reuse existing session IDs when already mounted.
+The manual workflow below remains available for games without a saved profile.
+
 1. Call `fmodel_capabilities`; check access roots, limits, and Oodle availability.
 2. Call `fmodel_list_options` with `category=game` and a game/engine filter. Select the known correct
    profile. `fmodel_open_game` requires an explicit `options.game`; it does not infer an engine version.
@@ -112,6 +120,13 @@ Use the actual paths returned by the server. The examples are illustrative, not 
 Each call is a JSON object; the comment lines above are labels and are not part of the request.
 
 ## Command reference
+
+Additional saved-profile commands:
+
+| Tool | Arguments and behavior |
+| --- | --- |
+| `fmodel_list_saved_games` | No arguments. Returns saved names, directories, selected profile, access status, local mapping candidates and key counts. Requires `fmodelSettingsPath` configured by the installer or user. |
+| `fmodel_open_saved_game` | Optional `selector` (name or directory; empty = last saved selection), `mappingsPath`, `readScriptData` (default true). Returns an ordinary session handle for all asset tools. |
 
 All tool names start with `fmodel_`. Read/list operations expose `readOnlyHint`; state-changing calls
 are marked nondestructive. Tools do not send messages or make network requests.
@@ -249,7 +264,7 @@ dotnet test FModel.Mcp.Tests/FModel.Mcp.Tests.csproj -m:1 -nr:false -p:CUE4PARSE
 ./scripts/Smoke-Mcp.ps1
 ```
 
-The 16 tests use the pinned upstream UE5.8 PAK/IoStore fixtures and an independently generated encrypted PAK.
+The 20 tests use the pinned upstream UE5.8 PAK/IoStore fixtures and an independently generated encrypted PAK.
 They exercise official-SDK stdio discovery/tool calls/resources, mappings, localization, registry search,
 package inspection, Blueprint pseudocode, inline PNGs, raw payloads, JSON/audio/texture/mesh/skeleton/USD
 world exports, partial failures, pagination, cancellation, and path restrictions. This does not certify

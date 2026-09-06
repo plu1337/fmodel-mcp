@@ -7,6 +7,7 @@ public sealed class ServerOptions
     public string[] InputRoots { get; set; } = [Environment.CurrentDirectory];
     public string OutputRoot { get; set; } = Path.Combine(Environment.CurrentDirectory, "Exports", "Mcp");
     public string? OodleLibrary { get; set; }
+    public string? FModelSettingsPath { get; set; }
     public int MaxSessions { get; set; } = 4;
     public int MaxJobs { get; set; } = 32;
     public int MaxBatchAssets { get; set; } = 500;
@@ -34,6 +35,7 @@ public sealed class ServerOptions
         options.InputRoots = options.InputRoots.Select(p => Path.GetFullPath(p, basePath)).ToArray();
         options.OutputRoot = Path.GetFullPath(options.OutputRoot, basePath);
         if (options.OodleLibrary is not null) options.OodleLibrary = Path.GetFullPath(options.OodleLibrary, basePath);
+        if (options.FModelSettingsPath is not null) options.FModelSettingsPath = Path.GetFullPath(options.FModelSettingsPath, basePath);
         if (options.MaxSessions is < 1 or > 16 || options.MaxJobs is < 1 or > 1000 || options.MaxBatchAssets is < 1 or > 10000 ||
             options.MaxReadBytes is < 1024 or > 2147483647 || options.MaxResponseChars is < 1024 or > 1_000_000)
             throw new ArgumentException("Invalid server limits; see docs/mcp.md.");

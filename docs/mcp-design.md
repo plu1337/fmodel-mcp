@@ -15,7 +15,7 @@ per-game directories that FModel implicitly loads from AppData are not accessed 
 ```mermaid
 flowchart LR
   AI[MCP host and AI] <-->|stdio JSON-RPC| SDK[Official C# MCP SDK]
-  SDK --> Tools[32 typed tools]
+  SDK --> Tools[34 typed tools]
   SDK --> Context[Resources and workflow prompts]
   Tools --> Sessions[Session registry and per-session locks]
   Sessions --> Parser[CUE4Parse providers and packages]
@@ -52,7 +52,7 @@ resources and prompts. Logs are isolated from protocol stdout.
 | Backup/version comparison | Two-session metadata comparison, optional per-file hash verification | No unqualified claims of byte equality |
 | Desktop-specific tools, live providers, creators | Advertised as unavailable | No fake success or stub tools |
 
-All 32 tools are implemented; the unavailable features above are not placeholder tool registrations.
+All 34 tools are implemented; the unavailable features above are not placeholder tool registrations.
 The command-by-command parameter reference and AI workflow examples are in [mcp.md](mcp.md).
 
 ## State, scale, and failure behavior
@@ -73,6 +73,13 @@ It never guesses game versions, AES keys, mappings, or original asset source. It
 partial reference graphs with their evidence limits.
 
 ## Dependency integration
+
+Saved-profile integration reads only the explicitly configured `fmodelSettingsPath`. A fresh installer
+can select that file from FModel's standard local settings location and import the selected game's
+access roots and cached Oodle path. The server re-reads saved profiles on demand; it never changes
+FModel's settings, grants roots from settings at runtime, or downloads keys/mappings. Saved key values
+stay out of model-facing responses. Cache mapping selection is automatic only for one matching file;
+ambiguous builds require an explicit choice. Unsaved UI selections are outside this integration.
 
 The parser is bootstrapped into the ignored `CUE4Parse/` directory. Bootstrap uses upstream revision
 `2bcceaf7bf129e4a52bc36d0a174dd3efb5fbfe0` with ZIP SHA-256

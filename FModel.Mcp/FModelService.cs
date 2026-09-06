@@ -48,11 +48,12 @@ public sealed partial class FModelService : IAsyncDisposable
 
     public object Capabilities() => new
     {
-        name = "FModel MCP", version = "1.0.0", parser = typeof(DefaultFileProvider).Assembly.GetName().Version?.ToString(),
+        name = "FModel MCP", version = "1.1.0", parser = typeof(DefaultFileProvider).Assembly.GetName().Version?.ToString(),
         transport = "stdio", operatingSystem = Environment.OSVersion.ToString(),
         inputRoots = _options.InputRoots, outputRoot = _options.OutputRoot,
         limits = new { _options.MaxSessions, _options.MaxJobs, _options.MaxBatchAssets, _options.MaxReadBytes, _options.MaxResponseChars, maxPageSize = 200 },
         oodleLoaded = OodleHelper.Instance is not null,
+        savedGamesConfigured = _options.FModelSettingsPath is not null,
         workflows = new[] { "local PAK/IoStore/loose files", "AES and USMAP/JMAP", "browse/search", "package exports/properties/imports/names",
             "IoStore referencers", "asset registry", "localization", "text/binary reads", "texture preview", "raw/JSON/texture/audio/mesh/animation/material/world export", "batch jobs", "session comparison" },
         limitations = new[] { "No control of the desktop FModel UI or 3D viewport", "No Fortnite/Valorant live streaming, remote key lookup or downloads",
