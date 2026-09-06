@@ -1,0 +1,21 @@
+name: Bug report
+description: Report a server, installer or supported asset workflow problem.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: FModel MCP version and Windows version
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps and expected behavior
+      description: Include the MCP tool, selected game/engine profile and archive format. Do not include AES keys, private paths or game files.
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Sanitized error or log
+      render: text

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="FModel.Mcp/FModel.Mcp.csproj" />
+  <Project Path="FModel.Mcp.Tests/FModel.Mcp.Tests.csproj" />
+</Solution>

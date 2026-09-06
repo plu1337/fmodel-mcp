@@ -1,0 +1,10 @@
+name: Feature request
+description: Suggest a new asset workflow or improvement.
+body:
+  - type: textarea
+    id: workflow
+    attributes:
+      label: What should an assistant be able to accomplish?
+      description: Describe the desired result, relevant asset types and current limitation.
+    validations:
+      required: true

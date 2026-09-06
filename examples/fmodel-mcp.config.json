@@ -1,0 +1,10 @@
+{
+  "inputRoots": ["C:/Games", "C:/FModel/Mappings"],
+  "outputRoot": "../Exports/Mcp",
+  "oodleLibrary": null,
+  "maxSessions": 4,
+  "maxJobs": 32,
+  "maxBatchAssets": 500,
+  "maxReadBytes": 268435456,
+  "maxResponseChars": 100000
+}

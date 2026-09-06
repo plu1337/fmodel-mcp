@@ -1,0 +1,38 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify version matches tag
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content FModel.Mcp/FModel.Mcp.csproj -Raw)).Project.PropertyGroup.Version
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw 'Release tag must match project version.' }
+      - name: Build and test release
+        shell: pwsh
+        run: ./scripts/Build-Mcp.ps1
+      - name: Verify installer
+        shell: pwsh
+        run: ./scripts/Test-Installer.ps1
+      - name: Bundle source
+        shell: pwsh
+        run: ./scripts/Package-Source.ps1
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = Get-ChildItem artifacts -File | Where-Object { $_.Name -match '\.(zip|sha256)$' } | ForEach-Object FullName
+          gh release create $env:GITHUB_REF_NAME @assets --verify-tag --title "FModel MCP $env:GITHUB_REF_NAME" --notes-file CHANGELOG.md
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release publication failed.' }

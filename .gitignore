@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/builddir/
+.packages/
+CUE4Parse/
+artifacts/
+Exports/
+*.local.json
+*.user
+.vs/
+.idea/
+.codex/
+.DS_Store
